@@ -66,13 +66,17 @@ class BarcodeParserResource(Resource):
 
     def post(self):
         args = self.parser.parse_args()
-        front = resize(args['front'], 1200)
+        front, format = resize(args['front'], 1200)
         barcode_reader = BarcodeReader()
-        user_data = barcode_reader.get_barcode_payload(front)
+        try:
+            user_data = barcode_reader.get_barcode_payload(front, format)
+        except:
+            return {"message": "Error decoding barcode"}, 400
         return user_data, 200
     
 api.add_resource(UserResource, '/user/<transaction_id>')
 api.add_resource(BarcodeParserResource, '/decode/')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
 

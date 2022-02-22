@@ -36,17 +36,18 @@ def call_sid_api(method, *args, **kwargs):
     return data, 200
 
 
-def conver_image_format(image):
+def conver_image_format(image, format):
     bytes_io_image = BytesIO()
-    image.save(bytes_io_image, 'JPEG')
+    image.save(bytes_io_image, format)
     byte_data = bytes_io_image.getvalue()
-    return base64.b64encode(byte_data).decode()
+    return base64.b64encode(byte_data).decode(), format
 
 def resize(image, width, height=None):
     image = Image.open(image)
+    format = image.format
     if not height:
         wpercent = (width / float(image.size[0]))
         height = int((float(image.size[1]) * float(wpercent)))
 
     new_img = image.resize((width, height), Image.ANTIALIAS)
-    return conver_image_format(new_img)
+    return conver_image_format(new_img, format)
