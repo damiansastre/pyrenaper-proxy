@@ -32,8 +32,8 @@ def call_sid_api(method, *args, **kwargs):
     try:
         data = getattr(sid, method)(*args, **kwargs)
     except Exception as e:
-        return {"status": False, "error": e.__class__.__name__, "description": e.__str__()}, 500
-    return data, 200
+        return {"status": False, "error": e.__class__.__name__, "description": e.__str__()}, 'error'
+    return data, 'success'
 
 
 def conver_image_format(image, format):

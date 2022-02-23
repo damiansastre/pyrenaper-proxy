@@ -2,7 +2,7 @@ from pyrenaper.utils import BarcodeReader
 from flask import Flask, request, Response
 from database.db import initialize_db
 from database.models import User
-from parsers import sid_parser
+from parsers import sid_parser, barcode_parser
 from utils import resize, call_sid_api
 from flask_cors import CORS
 from flask_restful import Resource, Api
@@ -29,7 +29,7 @@ class UserResource(Resource):
     def get(self, transaction_id):
         if bson.ObjectId.is_valid(transaction_id):
             user = User.objects.get_or_404(id=transaction_id)
-            return {"data": user.data, "status": user.status}, 200
+            return {"status": user.status}, 200
         return {"message": "Object not Found"}, 404
     
     def post(self, transaction_id):
@@ -48,21 +48,19 @@ class UserResource(Resource):
             return {"message": "User status is not valid, please refresh user data"}, 400
 
         args = self.parser.parse_args()
-        front = resize(args['front'], 1200)
-        barcode_reader = BarcodeReader()
-        user_data = barcode_reader.get_barcode_payload(front)
-        data, status =  call_sid_api('get_full_person_data', user_data['number'],
-                                                             user_data['gender'],
-                                                             user_data['order'])
-        if not data['status']:
-            user.update(status='error', data={"message": data['description']})
+        data, status =  call_sid_api('get_full_person_data', args['number'],
+                                                             args['gender'],
+                                                             args['order'])
+        if status == 'error':
+            user.update(data={"message": data['description']})
         else:
-            user.update(data=data, status='success')
+            user.update(data=data)
+        user.update(status=status)
         user.reload()
-        return {"data": user.data, "status": user.status}, 200
+        return {"status": status}, 200 if status == 'success' else 400
 
 class BarcodeParserResource(Resource):
-    parser = sid_parser
+    parser = barcode_parser
 
     def post(self):
         args = self.parser.parse_args()
