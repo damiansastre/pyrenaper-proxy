@@ -7,14 +7,16 @@ from utils import resize, call_sid_api
 from flask_cors import CORS
 from flask_restful import Resource, Api
 import bson
+import os
+
 
 app = Flask(__name__)
 CORS(app)
 app.config['MONGODB_SETTINGS'] = {
-    'host': 'mongo',
-    'db': 'renaper',
-    'username': 'docker',
-    'password': 'docker'
+    'host': os.getenv('MONGODB_HOSTNAME'),
+    'db': os.getenv('MONGO_DATABASE'),
+    'username': os.getenv('MONGODB_USERNAME'),
+    'password': os.getenv('MONGODB_PASSWORD')
     
 }
 api = Api(app)
